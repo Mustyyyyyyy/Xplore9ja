@@ -44,7 +44,7 @@ exports.register = catchAsync(async (req, res) => {
     },
   });
 
-  const accessToken = generateAccessToken({ id: user.id });
+  const accessToken = generateAccessToken({ id: user.id, role: user.role });
   const refreshToken = generateRefreshToken({ id: user.id });
 
   await prisma.user.update({
@@ -79,7 +79,7 @@ exports.login = catchAsync(async (req, res) => {
 
   if (!user.isActive) throw new AppError("This account is inactive.", 403);
 
-  const accessToken = generateAccessToken({ id: user.id });
+  const accessToken = generateAccessToken({ id: user.id, role: user.role });
   const refreshToken = generateRefreshToken({ id: user.id });
 
   await prisma.user.update({
@@ -122,7 +122,7 @@ exports.refreshToken = catchAsync(async (req, res) => {
     throw new AppError("Invalid refresh token.", 401);
   }
 
-  const newAccessToken = generateAccessToken({ id: user.id });
+  const newAccessToken = generateAccessToken({ id: user.id, role: user.role });
   const newRefreshToken = generateRefreshToken({ id: user.id });
 
   await prisma.user.update({
