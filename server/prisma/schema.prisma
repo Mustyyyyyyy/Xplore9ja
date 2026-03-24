@@ -1,0 +1,333 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  REFUNDED
+}
+
+enum DestinationCategory {
+  BEACH
+  MOUNTAIN
+  CITY
+  CULTURAL
+  RESORT
+  ADVENTURE
+  HISTORICAL
+  NATURE
+  WATERFALL
+  RELIGIOUS
+  WILDLIFE
+}
+
+enum TourType {
+  SOLO
+  GROUP
+  FAMILY
+  COUPLE
+  CORPORATE
+  ADVENTURE
+  LUXURY
+  BUDGET
+}
+
+enum ContactStatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum NotificationType {
+  SYSTEM
+  BOOKING
+  PAYMENT
+  PROMO
+  REVIEW
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CARD
+  BANK_TRANSFER
+  PAYSTACK
+}
+
+model User {
+  id                   String             @id @default(uuid())
+  fullName             String
+  email                String             @unique
+  password             String
+  phone                String?
+  avatar               String?
+  role                 Role               @default(USER)
+  isVerified           Boolean            @default(false)
+  isActive             Boolean            @default(true)
+  refreshToken         String?
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  bookings             Booking[]
+  reviews              Review[]
+  savedDestinations    SavedDestination[]
+  notifications        Notification[]
+  contactMessages      ContactMessage[]
+  payments             Payment[]
+
+  @@index([email])
+}
+
+model Destination {
+  id               String                @id @default(uuid())
+  name             String
+  slug             String                @unique
+  shortDescription String?
+  description      String
+  location         String
+  state            String
+  country          String                @default("Nigeria")
+  address          String?
+  price            Float?
+  featured         Boolean               @default(false)
+  isPublished      Boolean               @default(true)
+  category         DestinationCategory
+  images           String[]
+  tags             String[]
+  bestTime         String?
+  mapLink          String?
+  averageRating    Float                 @default(0)
+  reviewCount      Int                   @default(0)
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  bookings         Booking[]
+  reviews          Review[]
+  tours            Tour[]
+  savedByUsers     SavedDestination[]
+
+  @@index([slug])
+  @@index([state])
+  @@index([category])
+  @@index([featured])
+  @@index([isPublished])
+}
+
+model Tour {
+  id               String      @id @default(uuid())
+  title            String
+  slug             String      @unique
+  shortDescription String?
+  description      String
+  price            Float
+  discountPrice    Float?
+  duration         String
+  availableSlots   Int         @default(0)
+  minGroupSize     Int         @default(1)
+  maxGroupSize     Int?
+  featured         Boolean     @default(false)
+  isPublished      Boolean     @default(true)
+  type             TourType
+  images           String[]
+  itinerary        String?
+  included         String[]
+  excluded         String[]
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  destinationId    String
+  destination      Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
+  bookings         Booking[]
+
+  @@index([slug])
+  @@index([destinationId])
+  @@index([type])
+  @@index([featured])
+  @@index([isPublished])
+}
+
+model Booking {
+  id               String         @id @default(uuid())
+  bookingReference String         @unique
+  userId           String
+  destinationId    String?
+  tourId           String?
+  bookingDate      DateTime
+  startDate        DateTime?
+  endDate          DateTime?
+  guests           Int            @default(1)
+  totalPrice       Float
+  discountAmount   Float          @default(0)
+  finalPrice       Float
+  specialRequests  String?
+  status           BookingStatus  @default(PENDING)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  destination      Destination?   @relation(fields: [destinationId], references: [id], onDelete: SetNull)
+  tour             Tour?          @relation(fields: [tourId], references: [id], onDelete: SetNull)
+
+  appliedPromo     AppliedPromoCode?
+  payment          Payment?
+
+  @@index([bookingReference])
+  @@index([userId])
+  @@index([destinationId])
+  @@index([tourId])
+  @@index([status])
+}
+
+model Review {
+  id               String       @id @default(uuid())
+  userId           String
+  destinationId    String
+  rating           Int
+  comment          String
+  isPublished      Boolean      @default(true)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  destination      Destination  @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, destinationId])
+  @@index([destinationId])
+  @@index([isPublished])
+}
+
+model SavedDestination {
+  id               String       @id @default(uuid())
+  userId           String
+  destinationId    String
+  createdAt        DateTime     @default(now())
+
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  destination      Destination  @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, destinationId])
+  @@index([userId])
+  @@index([destinationId])
+}
+
+model NewsletterSubscriber {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  isActive         Boolean   @default(true)
+  subscribedAt     DateTime  @default(now())
+
+  @@index([email])
+}
+
+model ContactMessage {
+  id               String         @id @default(uuid())
+  userId           String?
+  fullName         String
+  email            String
+  subject          String
+  message          String
+  status           ContactStatus  @default(NEW)
+  adminNote        String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  user             User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([email])
+}
+
+model Notification {
+  id               String            @id @default(uuid())
+  userId           String
+  title            String
+  message          String
+  type             NotificationType  @default(SYSTEM)
+  isRead           Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([type])
+}
+
+model PromoCode {
+  id               String              @id @default(uuid())
+  code             String              @unique
+  description      String?
+  discountPercent  Float?
+  discountAmount   Float?
+  maxUses          Int?
+  usedCount        Int                 @default(0)
+  minBookingAmount Float?
+  isActive         Boolean             @default(true)
+  startsAt         DateTime?
+  expiresAt        DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  applications     AppliedPromoCode[]
+
+  @@index([code])
+  @@index([isActive])
+}
+
+model AppliedPromoCode {
+  id               String      @id @default(uuid())
+  promoCodeId      String
+  bookingId        String      @unique
+  discountApplied  Float       @default(0)
+  createdAt        DateTime    @default(now())
+
+  promoCode        PromoCode   @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  booking          Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([promoCodeId])
+}
+
+model Payment {
+  id               String         @id @default(uuid())
+  bookingId        String         @unique
+  userId           String
+  reference        String         @unique
+  amount           Float
+  method           PaymentMethod  @default(PAYSTACK)
+  status           PaymentStatus  @default(PENDING)
+  gatewayResponse  Json?
+  paidAt           DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  booking          Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([userId])
+  @@index([reference])
+  @@index([status])
+}

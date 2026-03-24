@@ -1,0 +1,26 @@
+@import "tailwindcss";
+@import "../styles/animations.css";
+
+:root {
+  --background: #f7f7f4;
+  --foreground: #111111;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.85), rgba(247, 247, 244, 1));
+  color: var(--foreground);
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
