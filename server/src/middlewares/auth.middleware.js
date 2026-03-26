@@ -22,7 +22,6 @@ const verifyToken = async (req, res, next) => {
       });
     }
 
-    // For backward compatibility, ensure role is available on req.user
     if (!decoded.role) {
       const user = await prisma.user.findUnique({
         where: { id: decoded.id },

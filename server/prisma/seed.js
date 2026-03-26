@@ -22,7 +22,6 @@ async function upsertTour(data) {
 async function main() {
   const destinations = {};
 
-  // ================= DESTINATIONS =================
   destinations.olumo = await upsertDestination({
     name: "Olumo Rock",
     slug: "olumo-rock",
@@ -108,7 +107,6 @@ async function main() {
     mapLink: "https://maps.google.com",
   });
 
-  // ================= TOURS =================
   await upsertTour({
     title: "Olumo Rock Tour",
     slug: "olumo-rock-tour",
@@ -151,7 +149,6 @@ async function main() {
     destinationId: destinations.lekki.id,
   });
 
-  // ================= ADMIN USER =================
   const hashedPassword = await bcrypt.hash("Admin@12345", 12);
 
   await prisma.user.upsert({
