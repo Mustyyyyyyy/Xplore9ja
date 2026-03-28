@@ -26,10 +26,13 @@ type DestinationResponse = {
 export default function DestinationsPage() {
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState("");
 
   useEffect(() => {
     async function loadDestinations() {
       try {
+        setFetchError("");
+
         const response = await apiFetch<DestinationResponse>("/destinations", {
           method: "GET",
         });
@@ -37,6 +40,9 @@ export default function DestinationsPage() {
         setDestinations(response.destinations || []);
       } catch (error) {
         console.error("Failed to load destinations:", error);
+        setFetchError(
+          error instanceof Error ? error.message : "Failed to load destinations"
+        );
       } finally {
         setLoading(false);
       }
@@ -53,15 +59,15 @@ export default function DestinationsPage() {
             <p className="text-sm font-medium uppercase tracking-[0.16em] text-neutral-500">
               Explore destinations
             </p>
-            <SectionHeading
-              title="Discover standout places across Nigeria"
-              />
+            <SectionHeading title="Discover standout places across Nigeria" />
           </div>
         </Reveal>
 
         <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {loading ? (
             <p className="text-sm text-neutral-500">Loading destinations...</p>
+          ) : fetchError ? (
+            <p className="text-sm text-red-500">{fetchError}</p>
           ) : destinations.length === 0 ? (
             <p className="text-sm text-neutral-500">No destinations found.</p>
           ) : (

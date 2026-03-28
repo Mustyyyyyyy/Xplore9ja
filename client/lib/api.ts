@@ -20,6 +20,14 @@ export async function apiFetch<T>(
   endpoint: string,
   options: FetchOptions = {}
 ): Promise<T> {
+  if (!API_URL) {
+    throw new ApiError(
+      "NEXT_PUBLIC_API_URL is missing. Check your Vercel environment variables.",
+      500,
+      null
+    );
+  }
+
   const token =
     typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 
@@ -43,11 +51,12 @@ export async function apiFetch<T>(
   if (!response.ok) {
     const message =
       typeof data === "object" && data !== null
-        ? (data as any).message || (data as any).error
+        ? (data as { message?: string; error?: string }).message ||
+          (data as { message?: string; error?: string }).error
         : undefined;
 
     throw new ApiError(
-      message || response.statusText || `HTTP error ${response.status}` || "Something went wrong",
+      message || response.statusText || `HTTP error ${response.status}`,
       response.status,
       data
     );
