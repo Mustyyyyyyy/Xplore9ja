@@ -55,8 +55,7 @@ export default function DestinationsPage() {
             </p>
             <SectionHeading
               title="Discover standout places across Nigeria"
-              text="Browse real destinations from your backend."
-            />
+              />
           </div>
         </Reveal>
 

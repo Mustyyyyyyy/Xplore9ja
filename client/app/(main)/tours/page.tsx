@@ -59,7 +59,6 @@ export default function ToursPage() {
             </p>
             <SectionHeading
               title="Travel packages with a more polished feel"
-              text="Explore real tours from your backend."
             />
           </div>
         </Reveal>
